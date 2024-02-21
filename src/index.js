@@ -29,7 +29,7 @@ function username(object) {
 
 async function getAccountCreationTime(env, address) {
   const key = `WEBFINGER:${address}`
-  let timestamp = await env.KV.get(key);
+  let timestamp = Number(await env.KV.get(key));
   if (timestamp) {
     return timestamp;
   }
