@@ -34,7 +34,11 @@ async function getAccountCreationTime(env, address) {
     return timestamp;
   }
 
-  const res = await fetch(address);
+  const res = await fetch(address, {
+    headers: {
+      'Accept': 'application/activity+json',
+    }
+  });
   const json = await res.json();
   const published = json?.published;
   if (!published) {
@@ -42,7 +46,7 @@ async function getAccountCreationTime(env, address) {
   } else {
     timestamp = Date.parse(published);
   }
-  await env.KV.set(key, timestamp);
+  await env.KV.put(key, timestamp);
   return timestamp;
 }
 
