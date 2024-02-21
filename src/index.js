@@ -1,6 +1,3 @@
-const NTFY_CHANNEL_URL = NTFY_CHANNEL_URL;
-const NTFY_TOKEN = NTFY_TOKEN;
-
 const PUBLIC_SCOPE = 'https://www.w3.org/ns/activitystreams#Public';
 const content_regex = /(荒.*共.*栄.*圏)|(https:\/\/mastodon-japan\.net\/@ap12)|(https:\/\/荒らし.com\/)|(https:\/\/ctkpaarr.org)/gm;
 
@@ -30,9 +27,9 @@ function username(object) {
   return match[0];
 }
 
-async function getAccountCreationTime(address) {
+async function getAccountCreationTime(env, address) {
   const key = `WEBFINGER:${address}`
-  let timestamp = await KV.get(key);
+  let timestamp = await env.KV.get(key);
   if (timestamp) {
     return timestamp;
   }
@@ -45,11 +42,11 @@ async function getAccountCreationTime(address) {
   } else {
     timestamp = Date.parse(published);
   }
-  await KV.set(key, timestamp);
+  await env.KV.set(key, timestamp);
   return timestamp;
 }
 
-async function isSpam(json) {
+async function isSpam(env, json) {
   const type = json.type;
   const object = json.object ?? {};
   const to = (object?.to ?? [])[0];
@@ -82,7 +79,7 @@ async function isSpam(json) {
     return false;
   }
 
-  const accountCreationTime = await getAccountCreationTime(object?.attributedTo);
+  const accountCreationTime = await getAccountCreationTime(env, object?.attributedTo);
   if (accountCreationTime > DATE) {
     return true;
   }
@@ -119,19 +116,19 @@ export default {
     try {
       const bodyJson = JSON.parse(bodyText);
 
-      if (await isSpam(bodyJson)) {
+      if (await isSpam(env, bodyJson)) {
 
         console.log('Got!!')
         try {
-          if (NTFY_CHANNEL_URL) {
+          if (env.NTFY_CHANNEL_URL) {
             const headers = {};
-            if (NTFY_TOKEN) {
-              headers['Authorization'] = `Bearer ${NTFY_TOKEN}`;
+            if (env.NTFY_TOKEN) {
+              headers['Authorization'] = `Bearer ${env.NTFY_TOKEN}`;
             }
 
             const message = bodyJson.object?.url ?? bodyJson.object?.atomUri ?? bodyText;
 
-            await fetch(NTFY_CHANNEL_URL, {
+            await fetch(env.NTFY_CHANNEL_URL, {
               method: 'POST',
               body: `Zap! ${message}`,
               headers,
