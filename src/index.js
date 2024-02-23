@@ -112,12 +112,6 @@ async function isSpam(env, json) {
 
   console.log(`Checking ${object.url} …`);
 
-  const accountCreationTime = await getAccountCreationTime(env, object?.attributedTo);
-  if (accountCreationTime > DATE) {
-    console.log('Account is too new');
-    return true;
-  }
-
   if (ccLen > 3 && content_regex.test(content)) {
     console.log('Too many CCs and content matches regex');
     return true;
@@ -132,6 +126,12 @@ async function isSpam(env, json) {
       console.log('Bad image');
       return true
     }
+  }
+
+  const accountCreationTime = await getAccountCreationTime(env, object?.attributedTo);
+  if (accountCreationTime > DATE) {
+    console.log('Account is too new');
+    return true;
   }
 
   console.log('No match');
