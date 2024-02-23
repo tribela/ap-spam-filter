@@ -8,6 +8,26 @@ const BAD_IMAGES = [
 
 const DATE = Date.parse('2024-02-18Z');
 
+async function sendNtfy(env, message) {
+  try {
+    if (env.NTFY_CHANNEL_URL) {
+      console.log([env.NTFY_CHANNEL_URL, env.NTFY_TOKEN]);
+      const headers = {};
+      if (env.NTFY_TOKEN) {
+        headers['Authorization'] = `Bearer ${env.NTFY_TOKEN}`;
+      }
+
+      await fetch(env.NTFY_CHANNEL_URL, {
+        method: 'POST',
+        body: message,
+        headers,
+      });
+    }
+  } catch (e) {
+    console.log(`Failed to send notification: ${e}`);
+  }
+}
+
 function isMentionsOnly(content) {
   const text = content.replace(/<[^>]*>/g, '');
   return /^(\s?(@[a-zA-Z0-9._-]+)+)*$/.test(text);
@@ -123,24 +143,9 @@ export default {
       if (await isSpam(env, bodyJson)) {
 
         console.log('Got!!')
-        try {
-          if (env.NTFY_CHANNEL_URL) {
-            const headers = {};
-            if (env.NTFY_TOKEN) {
-              headers['Authorization'] = `Bearer ${env.NTFY_TOKEN}`;
-            }
 
-            const message = bodyJson.object?.url ?? bodyJson.object?.atomUri ?? bodyText;
-
-            await fetch(env.NTFY_CHANNEL_URL, {
-              method: 'POST',
-              body: `Zap! ${message}`,
-              headers,
-            });
-          }
-        } catch (e) {
-          console.log('Failed to send notification');
-        }
+        const message = 'Zap! ' + (bodyJson.object?.url ?? bodyJson.object?.atomUri ?? bodyText);
+        await sendNtfy(env, message);
 
         return new Response('{}', {
           status: 400,
