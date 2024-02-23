@@ -54,19 +54,26 @@ async function getAccountCreationTime(env, address) {
     return timestamp;
   }
 
-  const res = await fetch(address, {
-    headers: {
-      'Accept': 'application/activity+json',
+  try {
+    const res = await fetch(address, {
+      headers: {
+        'Accept': 'application/activity+json',
+      }
+    });
+    const json = await res.json();
+    const published = json?.published;
+    if (!published) {
+      timestamp = null;
+    } else {
+      timestamp = Date.parse(published);
     }
-  });
-  const json = await res.json();
-  const published = json?.published;
-  if (!published) {
+    await env.KV.put(key, timestamp, {
+      expirationTtl: 60 * 60 * 24 * 7, // 1 week
+    });
+  } catch (e) {
+    console.log(`Failed to fetch ${address}: ${e}`);
     timestamp = null;
-  } else {
-    timestamp = Date.parse(published);
   }
-  await env.KV.put(key, timestamp);
   return timestamp;
 }
 
