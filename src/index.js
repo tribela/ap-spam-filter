@@ -6,7 +6,7 @@ const BAD_IMAGES = [
   '1009x200 UTQcblVY%gIU8w8_%Mxu%2Rjayt7.8?bMxRj',
 ];
 
-const DATE = Date.parse('2024-02-18Z');
+const ACCOUNT_OLD_THRESHOLD = 10 * 24 * 60 * 60 * 1000; // 10 days
 
 async function sendNtfy(env, message) {
   try {
@@ -133,7 +133,7 @@ async function isSpam(env, json) {
   }
 
   const accountCreationTime = await getAccountCreationTime(env, object?.attributedTo);
-  if (accountCreationTime > DATE) {
+  if (accountCreationTime && accountCreationTime - Date.now() < ACCOUNT_OLD_THRESHOLD) {
     console.log('Account is too new');
     return true;
   }
