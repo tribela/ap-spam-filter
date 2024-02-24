@@ -67,12 +67,16 @@ async function getAccountCreationTime(env, address) {
     } else {
       timestamp = Date.parse(published);
     }
+  } catch (e) {
+    console.log(`Failed to fetch ${address}: ${e}`);
+    timestamp = null;
+  }
+  try {
     await env.KV.put(key, timestamp, {
       expirationTtl: 60 * 60 * 24 * 7, // 1 week
     });
   } catch (e) {
-    console.log(`Failed to fetch ${address}: ${e}`);
-    timestamp = null;
+    console.log(`Failed to store ${key}: ${e}`);
   }
   return timestamp;
 }
