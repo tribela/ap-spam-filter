@@ -133,7 +133,7 @@ async function isSpam(env, json) {
   }
 
   const accountCreationTime = await getAccountCreationTime(env, object?.attributedTo);
-  if (accountCreationTime && accountCreationTime - Date.now() < ACCOUNT_OLD_THRESHOLD) {
+  if (accountCreationTime && Date.now() - accountCreationTime < ACCOUNT_OLD_THRESHOLD) {
     console.log('Account is too new');
     return true;
   }
